@@ -1,5 +1,5 @@
 import torch
-from model import SAEConfig, SparseAutoencoder, sae_loss
+from sae.model import SAEConfig, SparseAutoencoder, sae_loss
 import wandb
 
 

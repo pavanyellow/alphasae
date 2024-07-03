@@ -1,6 +1,6 @@
 from alphazero.Coach import Coach, SelfPlayConfig
 from othello.OthelloGame import OthelloGame as Game
-from othello.pytorch.NNet import NNetWrapper
+from othello.NetworkWrapper import NNetWrapper
 from othello.OthelloPlayers import  RandomPlayer, GreedyPlayer
 from alphazero.utils import *
 

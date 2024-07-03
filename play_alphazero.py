@@ -1,8 +1,8 @@
 from alphazero.Coach import SelfPlayConfig
 from othello.OthelloGame import OthelloGame as Game
 from othello.OthelloPlayers import  RandomPlayer, GreedyPlayer, HumanPlayer
-from othello.pytorch.NNet import NNetWrapper
-from alphazero.utils import NNetWrapperConfig, dotdict
+from othello.NetworkWrapper import NNetWrapper
+from alphazero.utils import NNetWrapperConfig
 from alphazero.Arena import Arena, Player
 
 
@@ -28,6 +28,6 @@ second_best_player = get_player(folder, second_best_filename)
 arena = Arena(best_player, random_player, game, display=Game.display) # Replace with Human player to play against the AI
 
 
-print(arena.playGames(10, verbose=True, print_final_board=True))
+print(arena.playGames(10, verbose=False, print_final_board=True))
 
 

@@ -1,24 +1,25 @@
 import sys
 import os
+
+
 sys.path.append('..')
+from alphazero.Coach import SelfPlayConfig
 import alphazero.Arena as Arena
 import torch
-from alphazero.MCTS import MCTS
 import time
 
 from othello.OthelloGame import OthelloGame as Game
 from othello.OthelloPlayers import  RandomPlayer, GreedyPlayer, HumanPlayer
-from othello.pytorch.NNet import NNetWrapper as NNet
+from othello.NetworkWrapper import NNetWrapper as NNet
 from alphazero.utils import NNetWrapperConfig
 import numpy as np
-from alphazero.utils import dotdict
 
-from othello.pytorch.OthelloNNet import acts
+from othello.model import acts
 
 config = NNetWrapperConfig(collect_resid_activations= True)
 
-#######
-# DO NOT TOUCH
+# Script used to collect the residual stream activations that are used to train the sparse autoencoders
+
 
 folder = 'pretrained/'
 best_filename = 'best.pth.tar'
@@ -27,10 +28,9 @@ second_best_filename = 'temp.pth.tar'
 game = Game(6)
 
 def get_player(folder, filename , temp = 1):
-    nnet = NNet(game, config = config)
-    nnet.load_checkpoint(folder, filename)
-    args = dotdict({'numMCTSSims': 32, 'cpuct': 1.0,})
-    return Arena.Player(game, args, nnet, temp)
+    network = NNet(game, NNetWrapperConfig())
+    network.load_checkpoint(folder, filename)
+    return Arena.Player(game, SelfPlayConfig(numMCTSSims=32), network, temp)
 
 # all players
 random_player = RandomPlayer(game)
@@ -38,8 +38,6 @@ greedy_player = GreedyPlayer(game)
 human_player = HumanPlayer(game)
 best_player = get_player(folder, best_filename)
 second_best_player = get_player(folder, second_best_filename)
-
-############################
 
 
 NUM_GAMES = 500

@@ -51,8 +51,8 @@ class SparseAutoencoder(nn.Module):
         decoded = self.decoder(encoded) + self.decoder_bias
         return decoded, encoded
     
-    def save(self, epoch: int = None):
-        PATH = f"trained_models/othello/{self.layer_num}_{self.input_dim}*{self.hidden_dim}_{self.l1_penalty}.pt"
+    def save(self, folder_path: str ):
+        PATH = f"{folder_path}/trained_models/othello/{self.layer_num}_{self.input_dim}*{self.hidden_dim}_{self.l1_penalty}.pt"
         torch.save(self.state_dict(), PATH)
         print(f"Model saved at {PATH}")
             

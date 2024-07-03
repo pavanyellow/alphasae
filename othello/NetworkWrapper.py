@@ -3,24 +3,22 @@ import sys
 import time
 
 import numpy as np
-from tqdm import tqdm
+
 
 sys.path.append('../../')
 from alphazero.utils import *
 
-from alphazero.NeuralNet import NeuralNet
-
 import torch
 import torch.optim as optim
 
-from .OthelloNNet import OthelloNNet
-from ..OthelloGame import OthelloGame
+from .OthelloGame import OthelloGame
 from alphazero.utils import NNetWrapperConfig
+from othello.model import OthelloModel
 
 
-class NNetWrapper(NeuralNet):
+class NNetWrapper:
     def __init__(self, game : OthelloGame, config: NNetWrapperConfig):
-        self.nnet = OthelloNNet(game)
+        self.nnet = OthelloModel(game)
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
         self.config : NNetWrapperConfig = config

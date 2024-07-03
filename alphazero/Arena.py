@@ -1,8 +1,6 @@
 import logging
 
 from tqdm import tqdm
-
-from alphazero.utils import dotdict
 from alphazero.MCTS import MCTS
 import numpy as np
 log = logging.getLogger(__name__)
@@ -21,9 +19,6 @@ class Player():
     
     def play(self, board):
         return np.argmax(self.mcts.getActionProb(board, temp=self.temp))
-
-
-
 
 class Arena():
     """

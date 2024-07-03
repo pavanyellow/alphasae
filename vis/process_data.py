@@ -4,6 +4,7 @@ import random
 import sys
 import numpy as np
 from tqdm import tqdm
+from othello.OthelloGame import OthelloGame
 
 sys.path.append('..')
 from sae.model import SparseAutoencoder
@@ -75,7 +76,6 @@ def get_feature_activations(sae: SparseAutoencoder, neuron_activations: torch.Te
     return feature_activations
 
 def save_boards_to_json(boards: torch.Tensor, output_file: str):
-    from othello.OthelloGame import OthelloGame
     game = OthelloGame(6)
 
     data = {
@@ -116,13 +116,13 @@ policy_head = torch.load("activations/othello/policy_head.pt",map_location = DEV
 boards = torch.load(f"activations/othello/boards.pt")[:BOARDS_COUNT_TO_USE]
 save_boards_to_json(boards, "data/boards.json")
 
-# for layer_num in [2]:
-#     for l1_penalty in [1,2,3,4,5,10]:
-#         for sae_expansion_factor in [2,4,8,16]:
-#             process_data(layer_num, l1_penalty, sae_expansion_factor, input_dim = INPUT_DIM)
+for layer_num in [2]:
+    for l1_penalty in [1,2,3,4,5,10]:
+        for sae_expansion_factor in [2,4,8,16]:
+            process_data(layer_num, l1_penalty, sae_expansion_factor, input_dim = INPUT_DIM)
 
 
-process_data(layer_num= 2, l1_penalty= 5, sae_expansion_factor= 16, input_dim= INPUT_DIM)
+
             
             
 

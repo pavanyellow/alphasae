@@ -5,7 +5,7 @@ from alphazero.utils import *
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from ..OthelloGame import OthelloGame
+from othello.OthelloGame import OthelloGame
 from alphazero.utils import NNetWrapperConfig, Activations
 
 
@@ -22,12 +22,12 @@ class ResidualBlock(nn.Module):
         out = F.relu(self.bn(self.fc(x)))
         return out + residual
 
-class OthelloNNet(nn.Module):
+class OthelloModel(nn.Module):
     def __init__(self, game: OthelloGame, num_layers=4, hidden_dim=256):
         self.board_x, self.board_y = game.getBoardSize()
         self.action_size = game.getActionSize()
 
-        super(OthelloNNet, self).__init__()
+        super(OthelloModel, self).__init__()
 
         self.fc1 = nn.Linear(self.board_x * self.board_y, hidden_dim)
         self.fc_bn1 = nn.BatchNorm1d(hidden_dim)
