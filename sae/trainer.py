@@ -3,14 +3,11 @@ from model import SAEConfig, SparseAutoencoder, sae_loss
 import wandb
 
 
-wandb_log = True
+wandb_log = False
 
 def init_wandb(config: SAEConfig):
     wandb.init(project='sae', config=config.__dict__)
     
-
-
-
 def split_data(original_dataset, val_split : float):
     dataset_size = original_dataset.shape[0]
     dataset = original_dataset[torch.randperm(dataset_size)]
@@ -62,9 +59,6 @@ def train_autoencoder(model: SparseAutoencoder, dataset: torch.Tensor, config: S
 
     optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate, betas=(0.9, 0.999))
     #scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: 1.0 - max(0, epoch - config.num_epochs * 0.8) / (config.num_epochs * 0.2))
-    import time
-    start = time.time()
-
     current_norm = torch.norm(dataset, dim=1, keepdim=True).mean()
     dataset.mul_((config.input_dim**0.5) / current_norm)
 

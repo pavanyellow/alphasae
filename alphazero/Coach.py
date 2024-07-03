@@ -10,8 +10,24 @@ from tqdm import tqdm
 
 from alphazero.Arena import Arena, Player
 from alphazero.MCTS import MCTS
+from dataclasses import dataclass
 
 log = logging.getLogger(__name__)
+
+
+@dataclass
+class SelfPlayConfig:
+    numIters: int = 10
+    numEps: int = 100
+    tempThreshold: int = 15
+    updateThreshold: float = 0.55
+    maxlenOfQueue: int = 200000
+    numMCTSSims: int = 32
+    arenaCompare: int = 40
+    cpuct: int = 1
+    checkpoint: str = './temp/'
+    numItersForTrainExamplesHistory: int = 20
+
 
 
 class Coach():
@@ -24,7 +40,7 @@ class Coach():
         self.game = game
         self.nnet = nnet
         self.pnet = self.nnet.__class__(self.game, self.nnet.config)  # the competitor network
-        self.args = args
+        self.args : SelfPlayConfig = args
         self.mcts = MCTS(self.game, self.nnet, self.args)
         self.trainExamplesHistory = []  # history of examples from args.numItersForTrainExamplesHistory latest iterations
         self.skipFirstSelfPlay = False  # can be overriden in loadTrainExamples()
