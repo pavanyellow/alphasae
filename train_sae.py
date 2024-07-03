@@ -2,28 +2,20 @@ import torch
 from sae.model import SAEConfig, SparseAutoencoder, DEVICE
 from sae.trainer import train_autoencoder
 
-
-
 layer_num = 2
 resid_stream_dimension = 256
 game = 'othello'
-
-
-
 PATH = f'sae/activations/{game}_{resid_stream_dimension}_l{layer_num}.pt'
+NUM_EPOCHS = 12000
+batch_size = 16384
+learning_rate = 1e-4
+sae_expansion_factor = 8
+l1_penalty = 1e-4
+
 data = torch.load(PATH, map_location=DEVICE)
 print(f"Training examples count: {data.shape[0]}")
+
 input_dim = data.shape[1]
-
-
-
-NUM_EPOCHS = 12000
-batch_size = 64
-learning_rate = 1e-4
-sae_expansion_factor = 4
-l1_penalty = 0.1
-
-
 
 config = SAEConfig(
     input_dim,
