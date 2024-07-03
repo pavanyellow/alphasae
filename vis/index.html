@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alphazero Mini Othello (6x6) Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+    <div class="max-w-2xl w-full mx-auto p-8 bg-white rounded-xl shadow-lg">
+        <h1 class="text-4xl font-bold mb-8 text-center text-gray-800">Alphazero Mini Othello (6x6) Visualizer</h1>
+        
+        <div class="mb-8">
+            <h2 class="text-2xl font-semibold mb-6 text-center text-gray-700">Select Visualization Parameters</h2>
+            
+            <div class="grid grid-cols-1 gap-6">
+                <div>
+                    <label for="l1PenaltySelect" class="block text-sm font-medium text-gray-700 mb-1">L1 Penalty</label>
+                    <select id="l1PenaltySelect" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3" selected>3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                        <option value="10">10</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="featureCountSelect" class="block text-sm font-medium text-gray-700 mb-1">Feature Count</label>
+                    <select id="featureCountSelect" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                        <option value="512">512 (2)</option>
+                        <option value="1024">1024 (4)</option>
+                        <option value="2048" selected>2048 (8)</option>
+                        <option value="4096">4096 (16)</option>
+                        <option value="8192">8192 (32)</option>
+                        <!-- <option value="16384">16384 (64)</option>
+                        <option value="32768">32768 (128)</option> -->
+                    </select>
+                </div>
+            </div>
+            
+            <button id="visualizeButton" class="mt-8 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-150 ease-in-out">
+                Visualize Features
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('visualizeButton').addEventListener('click', function() {
+            const layer = 2; // Always use layer 2
+            const l1Penalty = document.getElementById('l1PenaltySelect').value;
+            const featureCount = document.getElementById('featureCountSelect').value;
+            
+            const url = `feature_vis.html?layer=${layer}&l1Penalty=${l1Penalty}&featureCount=${featureCount}`;
+            window.location.href = url;
+        });
+    </script>
+</body>
+</html>

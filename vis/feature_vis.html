@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alphazero Mini Othello (6x6) Feature Visualizer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tippy.js/6.3.7/tippy.min.css">
+    <style>
+        .board {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            width: 180px;
+            height: 180px;
+            gap: 1px;
+            background-color: #000;
+        }
+        .cell {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #1b8024;
+            position: relative;
+            overflow: hidden;
+        }
+        .cell-highlight {
+            background-color: #fef3c7;
+        }
+        .piece {
+            width: 80%;
+            height: 80%;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        .piece-black {
+            background-color: #000;
+        }
+        .piece-white {
+            background-color: #fff;
+        }
+        .valid-move::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30%;
+            height: 30%;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            transition: transform 0.3s ease, background-color 0.3s ease;
+        }
+        .board:hover .valid-move::before {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        .valid-move:hover::before {
+            background-color: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 10px 5px rgba(255, 255, 255, 0.5);
+        }
+        .valid-move:hover::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 40%;
+            height: 40%;
+            border-radius: 50%;
+            background-color: transparent;
+        }
+        .move-number {
+            display: inline-block;
+            padding: 2px 6px;
+            margin: 0 2px;
+            background-color: #e2e8f0;
+            border-radius: 1px;
+            cursor: pointer;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 24px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        .overlay.active {
+            opacity: 1;
+        }
+        .green-tick::after {
+            content: '✓';
+            color: #22c55e;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-lg p-8 relative">
+        <a href="index.html" class="absolute top-4 left-4 px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition duration-150 ease-in-out">
+            ← Back to Selection
+        </a>
+        <h1 class="text-4xl font-bold mb-6 text-center text-gray-800">Mini Othello (6x6) Feature Visualizer</h1>
+        <div id="parameterInfo" class="mb-6 text-center text-lg font-semibold text-gray-700"></div>
+        <div class="mb-4 p-4 bg-blue-100 border-l-4 border-blue-500 text-blue-700 rounded-md">
+            <p class="font-medium">Current Player: You (Black)</p>
+            <p>The boards shown represent the game state during your turn.</p>
+        </div>
+        <div class="mb-6 flex items-end space-x-4">
+            <div class="flex-grow">
+                <label for="featureSelect" class="block text-sm font-medium text-gray-700 mb-1">Select Feature</label>
+                <select id="featureSelect" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="">Loading features...</option>
+                </select>
+            </div>
+            <div class="flex-grow">
+                <label for="sampleType" class="block text-sm font-medium text-gray-700 mb-1">Activation Type</label>
+                <select id="sampleType" class="w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="top_5">Top Activations</option>
+                    <option value="random_5">Random Activations</option>
+                </select>
+            </div>
+        </div>
+        <div id="featureInfo" class="mb-4 p-4 bg-green-100 border-l-4 border-green-500 text-green-700 rounded-md hidden">
+            <p id="featureFrequency"></p>
+        </div>
+        <div id="boards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6"></div>
+        <p id="topMoves" class="mt-2"></p>
+    </div>
+
+    <script>
+        const symbols = { '1': 'black', '-1': 'white', '0': ''};
+        let globalData;
+        let globalBoards;
+
+        function createBoard(boardData, activation) {
+            const boardDiv = document.createElement('div');
+            boardDiv.className = 'bg-white p-6 rounded-lg shadow-md transition-all duration-300 hover:shadow-lg board-container';
+            
+            const activationP = document.createElement('p');
+            activationP.textContent = `Activation: ${activation.toFixed(4)}`;
+            activationP.className = 'mb-3 text-sm font-medium text-gray-600';
+            boardDiv.appendChild(activationP);
+
+            const boardGrid = document.createElement('div');
+            boardGrid.className = 'board';
+
+            boardData.board.forEach((cell, index) => {
+                const cellDiv = document.createElement('div');
+                cellDiv.className = 'cell';
+                if (cell !== 0) {
+                    const piece = document.createElement('div');
+                    piece.className = `piece piece-${symbols[cell]}`;
+                    cellDiv.appendChild(piece);
+                    cellDiv.setAttribute('data-tippy-content', cell === 1 ? "Black piece" : "White piece");
+                }
+                
+                if (boardData.valid_moves.includes(index)) {
+                    cellDiv.classList.add('valid-move');
+                    cellDiv.setAttribute('data-tippy-content', (cellDiv.getAttribute('data-tippy-content') || '') + ' (Valid move)');
+                }
+                
+                const overlay = document.createElement('div');
+                overlay.className = 'overlay';
+                cellDiv.appendChild(overlay);
+                
+                boardGrid.appendChild(cellDiv);
+            });
+
+            boardDiv.appendChild(boardGrid);
+            return boardDiv;
+        }
+
+        // IndexedDB helper functions
+        const dbName = 'OthelloBoardsDB';
+        const storeName = 'boards';
+        const dbVersion = 1;
+
+        function openDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(dbName, dbVersion);
+                
+                request.onerror = event => reject("IndexedDB error: " + event.target.error);
+                
+                request.onsuccess = event => resolve(event.target.result);
+                
+                request.onupgradeneeded = event => {
+                    const db = event.target.result;
+                    db.createObjectStore(storeName);
+                };
+            });
+        }
+
+        function getBoards(db) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], 'readonly');
+                const store = transaction.objectStore(storeName);
+                const request = store.get('boardsData');
+                
+                request.onerror = event => reject("Error fetching boards: " + event.target.error);
+                
+                request.onsuccess = event => resolve(event.target.result);
+            });
+        }
+
+        function saveBoards(db, boards) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction([storeName], 'readwrite');
+                const store = transaction.objectStore(storeName);
+                const request = store.put(boards, 'boardsData');
+                
+                request.onerror = event => reject("Error saving boards: " + event.target.error);
+                
+                request.onsuccess = event => resolve();
+            });
+        }
+
+        // Main function to load boards with caching
+        function loadBoardsWithCache() {
+            return new Promise((resolve, reject) => {
+                openDB().then(db => {
+                    getBoards(db).then(cachedBoards => {
+                        if (cachedBoards) {
+                            console.log('Using cached boards from IndexedDB');
+                            resolve(cachedBoards);
+                        } else {
+                            console.log('Fetching boards from server');
+                            fetch('data/boards.json')
+                                .then(response => {
+                                    if (!response.ok) {
+                                        throw new Error(`HTTP error! status: ${response.status}`);
+                                    }
+                                    return response.json();
+                                })
+                                .then(boardsData => {
+                                    saveBoards(db, boardsData)
+                                        .then(() => {
+                                            console.log('Boards saved to IndexedDB');
+                                            resolve(boardsData);
+                                        })
+                                        .catch(error => {
+                                            console.error('Error saving to IndexedDB:', error);
+                                            resolve(boardsData); // Still resolve with the fetched data
+                                        });
+                                })
+                                .catch(reject);
+                        }
+                    }).catch(reject);
+                }).catch(reject);
+            });
+        }
+
+        function displayFeature(feature, sampleType) {
+            const boardsContainer = document.getElementById('boards');
+            boardsContainer.innerHTML = '';
+            
+            const samples = feature[sampleType];
+            if (!samples) {
+                throw new Error(`Sample type '${sampleType}' not found in feature data.`);
+            }
+            samples.forEach(sample => {
+                const board = globalBoards.boards[sample.i];
+                if (!board) {
+                    throw new Error(`Board data not found for index ${sample.i}`);
+                }
+                boardsContainer.appendChild(createBoard(board, parseFloat(sample.a)));
+            });
+
+            const featureInfo = document.getElementById('featureInfo');
+            const featureFrequency = document.getElementById('featureFrequency');
+            if (feature.activation_frequency === undefined) {
+                throw new Error("Activation frequency data not found in feature.");
+            }
+            featureFrequency.textContent = `Feature Frequency: ${(feature.activation_frequency * 100).toFixed(2)}%`;
+            featureInfo.classList.remove('hidden');
+
+            // const topMovesElement = document.getElementById('topMoves');
+            // topMovesElement.innerHTML = 'Top Moves: ' + feature.top_moves.map(move => 
+            //     `<span class="move-number top-move" data-move="${move}">${move === 36 ? 'No move' : move + 1}</span>`
+            // ).join('');
+            
+            // addMoveHoverListeners();
+        }
+
+        function addMoveHoverListeners() {
+            const moveNumbers = document.querySelectorAll('.move-number');
+            moveNumbers.forEach(moveNumber => {
+                moveNumber.addEventListener('mouseenter', () => highlightMove(moveNumber));
+                moveNumber.addEventListener('mouseleave', removeHighlights);
+            });
+        }
+
+        function highlightMove(moveNumber) {
+            const move = parseInt(moveNumber.dataset.move);
+            const isTopMove = moveNumber.classList.contains('top-move');
+            const boards = document.querySelectorAll('.board');
+            
+            boards.forEach(board => {
+                const cells = board.querySelectorAll('.cell');
+                const cell = cells[move];
+                if (cell) {
+                    const overlay = cell.querySelector('.overlay');
+                    overlay.classList.add('active');
+                    overlay.classList.add(isTopMove ? 'green-tick' : 'red-cross');
+                }
+            });
+        }
+
+        function removeHighlights() {
+            document.querySelectorAll('.overlay').forEach(overlay => {
+                overlay.classList.remove('active', 'green-tick', 'red-cross');
+            });
+        }
+
+        function populateFeatureSelect(features) {
+            const select = document.getElementById('featureSelect');
+            select.innerHTML = '';
+            if (features.length === 0) {
+                throw new Error("No features found in the data.");
+            }
+            features.forEach((feature, index) => {
+                const option = document.createElement('option');
+                option.value = index;
+                option.textContent = `Feature ${feature.id}`;
+                select.appendChild(option);
+            });
+        }
+
+        function loadData(filename) {
+            Promise.all([
+                fetch(`data/${filename}`).then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                }),
+                loadBoardsWithCache()
+            ])
+            .then(([featureData, boardsData]) => {
+                if (!featureData || !featureData.features) {
+                    throw new Error("Invalid feature data structure.");
+                }
+                if (!boardsData || !boardsData.boards) {
+                    throw new Error("Invalid board data structure.");
+                }
+                globalData = featureData;
+                globalBoards = boardsData;
+                populateFeatureSelect(featureData.features);
+
+                const featureSelect = document.getElementById('featureSelect');
+                const sampleTypeSelect = document.getElementById('sampleType');
+
+                function updateDisplay() {
+                    const selectedFeature = globalData.features[featureSelect.value];
+                    const selectedSampleType = sampleTypeSelect.value;
+                    displayFeature(selectedFeature, selectedSampleType);
+                }
+
+                featureSelect.addEventListener('change', updateDisplay);
+                sampleTypeSelect.addEventListener('change', updateDisplay);
+
+                updateDisplay();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('boards').innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
+            });
+        }
+
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const layer = urlParams.get('layer');
+        const l1Penalty = urlParams.get('l1Penalty');
+        const featureCount = urlParams.get('featureCount');
+
+        // Validate URL parameters
+        if (!layer || !l1Penalty || !featureCount) {
+            throw new Error("Missing required URL parameters.");
+        }
+
+        // Display parameter information
+        const parameterInfo = document.getElementById('parameterInfo');
+        parameterInfo.textContent = `Layer: ${layer}, L1 Penalty: ${l1Penalty}, Feature Count: ${parseInt(featureCount)}`;
+
+        // Construct filename and load data
+        const filename = `layer_${layer}_penalty_${l1Penalty}_count_${featureCount}.json`;
+        loadData(filename);
+
+        // Initialize tooltips
+        tippy('[data-tippy-content]');
+    </script>
+</body>
+</html>
