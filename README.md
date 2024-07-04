@@ -1,6 +1,4 @@
-# alphasae
-![vis](assets/vis.png)
-
+# Alpha Zero SAE
 Sparse Autoencoders (SAEs) are a class of models used to find interpretable features in a model's activation space. They have gained momentum as the go-to tool for understanding language models since they were introduced ([paper](https://transformer-circuits.pub/2023/monosemantic-features/index.html)) last year.
 
 The goal of this repo is to use SAEs to extract novel features from a model that is superhuman at a task, unlike current generation LLMs. The [Levels of AGI](https://arxiv.org/pdf/2311.02462) paper from DeepMind puts [AlphaFold](https://deepmind.google/technologies/alphafold/) and [AlphaZero](https://deepmind.google/discover/blog/alphazero-shedding-new-light-on-chess-shogi-and-go/) in that category. We train AlphaZero to play the board game Othello and use it as our subject model.
@@ -15,7 +13,7 @@ This is the quickest way to explore the extracted features:
 
 - Loading takes 3-4 seconds initially, faster on subsequent loads due to caching.
 - Qualitatively, SAEs with L1 penalties 3 and 4, and feature counts of 1024 and 2048 are more Interpretable.
-    
+
 ### Option 2: Local Visualization
 
 If you prefer to run the visualization locally:
@@ -27,7 +25,8 @@ python -m http.server 8000
 
 ```
 
-Then open `http://localhost:8000` in your browser.
+Then open `http://localhost:8000` in your browser. It should look this
+![vis](assets/vis.png)
 
 ## Dependencies
 
