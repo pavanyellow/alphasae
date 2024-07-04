@@ -83,3 +83,42 @@ python othello/play.py --human  # Play against the AI
 python othello/play.py --games 10  # AI vs AI for 10 games
 
 ```
+
+## SAE Experiments
+
+Sparse Autoencoder is simple 2 layer feed forward network. They take a input vector, expand it into higher dimension and them compress them back into original dimension. Here's the simplest autoencoder possible
+
+```python
+input = torch.randn(5)
+encoder, decoder = nn.Linear(5,20), nn.Linear(20,5) # Two Feed forward layers
+encoded = nn.ReLU(encoder(input))  # Relu is applied after layer 1
+output = decoder(encoded)         # Inputs are reconstructed from the encoded representation
+l1_penalty = 5                    # L1 penalty to used to control sparsity
+loss = ((output-input)**2).sum() + l1_penalty*encoded.sum() # Reconstruction error + sparsity loss
+
+```
+The [theory](https://transformer-circuits.pub/2022/toy_model/index.html#strategic-approach-overcomplete) is that `encoded[i]` is more interpretable than `input[i]`.
+I've trained 25 SAEs ranging with L1 penalties `[1, 2, 3, 4, 5]` and Number of features `[256, 512, 1024, 2048, 4096]`. All the models were trained with:
+- Batch size: 16384
+- Learning Rate: 0.0001 (Selected through a hyperparameter sweep)
+- Input: Layer 2 residual stream (dim = 256) activations from AlphaZero
+- Number of Training Examples: 3M activations
+- Epochs: 12000
+- Hardware: RTX 4090
+- Training Time: 1-30 minutes depending on the model size
+
+Here's some scaling trends we observe over different model sizes. Note that X axis (Number of features) is in log scale! Details of these runs can be found at [scaling.json](https://huggingface.co/datasets/pavanyellow/othello/blob/main/scaling.json).
+
+
+![l0](assets/l0_features.png)
+
+![mse](assets/mse_features.png)
+
+![loss](assets/loss_features.png)
+
+![mse_l0][assets/mse_l0.png]
+
+## Acknowledgements
+
+- [AlphaZero General](https://github.com/suragnair/alpha-zero-general) for reference implementation of AlphaZero.
+- Anthropic for publishing their [SAE training setup](https://transformer-circuits.pub/2024/april-update/index.html#training-saes)
