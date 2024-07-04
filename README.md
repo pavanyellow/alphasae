@@ -116,7 +116,7 @@ Here's some scaling trends we observe over different model sizes. Note that X ax
 
 ![loss](assets/loss_features.png)
 
-![mse_l0][assets/mse_l0.png]
+![mse_l0](assets/mse_l0.png)
 
 ## Acknowledgements
 
