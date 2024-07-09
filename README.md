@@ -114,3 +114,4 @@ Here are some scaling trends we observe over different model sizes. Note that th
 
 - [AlphaZero General](https://github.com/suragnair/alpha-zero-general) for reference implementation of AlphaZero.
 - Anthropic for publishing their [SAE training setup](https://transformer-circuits.pub/2024/april-update/index.html#training-saes)
+- [Scaling Scaling Laws with Board Games](https://arxiv.org/abs/2104.03113) which influenced a lot of my training decisions.
