@@ -7,8 +7,7 @@ The goal of this repo is to use SAEs to extract novel features from a model that
 
 ### Option 1: Hosted Visualization (Recommended)
 
-[**View the Interactive Visualization**]([http://www.pavankatta.com/alphasae](https://www.pavankatta.com/alphasae/index.html))
-
+[**View the Interactive Visualization**](http://www.pavankatta.com/alphasae/index.html)
 This is the quickest way to explore the extracted features:
 
 - Loading takes 3-4 seconds initially, faster on subsequent loads due to caching.
